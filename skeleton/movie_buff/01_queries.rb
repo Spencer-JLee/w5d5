@@ -23,8 +23,11 @@ def harrison_ford
   # Find the id and title of all movies in which Harrison Ford
   # appeared but not as a lead actor
   Movie
+    .select("movies.id, movies.title")
     .joins(:actors)
-    .select(movies.id, movies.title)
+    .where(actors: { name: 'Harrison Ford'})
+    .where.not(castings: { ord: 1 })
+    # .where(castings: { :ord != 1 })
 end
 
 def biggest_cast
@@ -41,10 +44,20 @@ def biggest_cast
   #
   # Find the id and title of the 3 movies with the
   # largest casts (i.e most actors)
-
+  Movie
+    .select(:id, :title)
+    .joins(:castings)
+    .group("movies.id")
+    .order('COUNT(castings.id) DESC')
+    .limit(3)
 end
 
 def directed_by_one_of(them)
+  Movie
+    .joins(:director)
+    .select(:id, :title)
+    .where(actors: {name: them})
+
   # Consider the following:
   #
   # Movie.where('yr IN (?)', years)
@@ -70,5 +83,5 @@ def movie_names_before_1940
   # improve performace for larger queries.
   #
   # Use pluck to find the title of all movies made before 1940.
-
+  Movie.where('yr < 1940').pluck(:title)
 end
